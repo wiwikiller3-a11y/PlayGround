@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover" />
+  <meta name="theme-color" content="#10141f" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="description" content="Graalhold: un juego de hordas pixel art inspirado en los clásicos RPG de Android. Sobrevive a oleadas interminables." />
+  <title>GRAALHOLD · Hordas de la Frontera</title>
+  <link rel="icon" href="assets/favicon.svg" type="image/svg+xml" />
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+  <div id="app">
+    <canvas id="game" aria-label="Juego Graalhold" role="img"></canvas>
+    <div id="vignette" class="vignette"></div>
+    <div id="flash" class="flash"></div>
+
+    <!-- ============ HUD ============ -->
+    <div id="hud" class="hud is-hidden">
+      <div class="hud-top">
+        <div class="hud-left">
+          <div class="panel hearts-panel">
+            <div id="hearts" class="hearts"></div>
+            <div class="hud-stats">
+              <span class="stat" title="Monedas"><img id="coinIcon" class="stat-icon" alt="" /><span id="coinCount">0</span></span>
+              <span class="stat" title="Bajas"><img id="skullIcon" class="stat-icon" alt="" /><span id="killCount">0</span></span>
+              <span class="stat" title="Bombas"><img id="bombIcon" class="stat-icon" alt="" /><span id="bombCount">0</span></span>
+            </div>
+          </div>
+        </div>
+        <div class="hud-right">
+          <div class="panel wave-panel">
+            <span class="wave-label">OLEADA</span>
+            <span id="waveNum" class="wave-num">01</span>
+          </div>
+          <div class="panel score-panel" title="Puntuación">
+            <span class="score-label">PUNTOS</span>
+            <span id="scoreNum" class="score-num">0</span>
+          </div>
+          <button id="muteBtn" class="icon-btn" aria-label="Silenciar sonido">
+            <span class="icon-btn-glyph" id="muteGlyph">♪</span>
+          </button>
+          <button id="pauseBtn" class="icon-btn" aria-label="Pausa">
+            <span class="icon-btn-glyph">❚❚</span>
+          </button>
+        </div>
+      </div>
+
+      <div id="bossWrap" class="boss-wrap is-hidden">
+        <div class="boss-head">
+          <span id="bossName">EL CUSTODIO DEL GRAAL</span>
+          <span id="bossPct">100%</span>
+        </div>
+        <div class="boss-track"><div id="bossFill" class="boss-fill"></div></div>
+      </div>
+
+      <div id="combo" class="combo is-hidden">
+        <span id="comboNum" class="combo-num">2</span>
+        <span class="combo-label">COMBO</span>
+        <div class="combo-track"><div id="comboFill" class="combo-fill"></div></div>
+      </div>
+
+      <div id="hint" class="hint">
+        <span><b>WASD</b> mover</span><span><b>J</b> atacar</span><span><b>K</b> rodar</span><span><b>E</b> bomba</span>
+      </div>
+    </div>
+
+    <!-- ============ WAVE BANNER ============ -->
+    <div id="banner" class="banner is-hidden">
+      <div class="banner-kicker" id="bannerKicker">SOBREVIVE</div>
+      <div class="banner-title" id="bannerTitle">OLEADA 1</div>
+      <div class="banner-sub" id="bannerSub">La horda se acerca</div>
+    </div>
+
+    <!-- ============ TOUCH CONTROLS ============ -->
+    <div id="touch" class="touch is-hidden">
+      <div id="stickZone" class="stick-zone">
+        <div id="stickBase" class="stick-base"><div id="stickKnob" class="stick-knob"></div></div>
+      </div>
+      <div class="touch-buttons">
+        <button id="btnBomb" class="touch-btn touch-bomb" aria-label="Bomba">
+          <img id="bombBtnIcon" alt="" /><span id="bombBadge" class="bomb-badge">2</span>
+        </button>
+        <button id="btnRoll" class="touch-btn touch-roll" aria-label="Rodar">
+          <img id="rollBtnIcon" alt="" />
+        </button>
+        <button id="btnAttack" class="touch-btn touch-attack" aria-label="Atacar">
+          <img id="attackBtnIcon" alt="" />
+        </button>
+      </div>
+    </div>
+
+    <!-- ============ TITLE ============ -->
+    <section id="titleScreen" class="screen title-screen">
+      <div class="title-glow"></div>
+      <div class="title-inner">
+        <div class="crest" aria-hidden="true">
+          <img id="crestIcon" alt="" />
+        </div>
+        <p class="title-kicker">UN JUEGO DE HORDAS PIXEL ART</p>
+        <h1 class="logo">GRAALHOLD</h1>
+        <p class="logo-sub">HORDAS DE LA FRONTERA</p>
+        <p class="tagline">El reino cayó. Solo quedas tú entre la horda<br class="mobile-br" /> y la última aldea.</p>
+        <div class="title-actions">
+          <button id="playBtn" class="btn btn-primary">
+            <span class="btn-play-icon">▶</span> JUGAR
+          </button>
+          <button id="howBtn" class="btn btn-ghost">CÓMO JUGAR</button>
+        </div>
+        <div id="howPanel" class="how-panel is-hidden">
+          <div class="how-row"><span class="how-key">WASD / ←↑↓→</span><span>Moverte por la arena</span></div>
+          <div class="how-row"><span class="how-key">J / ESPACIO</span><span>Espada: combo de tres golpes</span></div>
+          <div class="how-row"><span class="how-key">K / SHIFT</span><span>Rodar: esquiva con invulnerabilidad</span></div>
+          <div class="how-row"><span class="how-key">E</span><span>Bomba: arrasa la horda</span></div>
+          <div class="how-row"><span class="how-key">P / ESC</span><span>Pausa · M silencio</span></div>
+          <div class="how-row how-note"><span>Móvil</span><span>Joystick y botones táctiles</span></div>
+        </div>
+        <div class="best">
+          <span class="best-label">RÉCORD</span>
+          <span id="bestScore" class="best-score">0</span>
+        </div>
+        <p class="title-tip">Derrota oleadas, elige bendiciones y sobrevive al jefe cada 5 oleadas.</p>
+      </div>
+      <div class="title-foot">
+        <span>GRAALHOLD v1.0</span>
+        <span class="dot">·</span>
+        <span>HECHO CON PÍXELES Y NOSTALGIA</span>
+      </div>
+    </section>
+
+    <!-- ============ UPGRADE ============ -->
+    <section id="upgradeScreen" class="screen upgrade-screen is-hidden">
+      <div class="upgrade-box">
+        <p class="upgrade-kicker">OLEADA SUPERADA</p>
+        <h2 class="upgrade-title">ELIGE UNA BENDICIÓN</h2>
+        <p class="upgrade-sub">El Grial te concede un poder. <span class="upgrade-keys">Pulsa 1 · 2 · 3</span></p>
+        <div id="cards" class="cards"></div>
+      </div>
+    </section>
+
+    <!-- ============ PAUSE ============ -->
+    <section id="pauseScreen" class="screen pause-screen is-hidden">
+      <div class="modal">
+        <p class="modal-kicker">DESCANSO</p>
+        <h2 class="modal-title">PAUSA</h2>
+        <div class="pause-stats">
+          <div><span>OLEADA</span><b id="pauseWave">1</b></div>
+          <div><span>PUNTOS</span><b id="pauseScore">0</b></div>
+          <div><span>BAJAS</span><b id="pauseKills">0</b></div>
+        </div>
+        <div class="modal-actions">
+          <button id="resumeBtn" class="btn btn-primary">CONTINUAR</button>
+          <button id="restartBtn" class="btn btn-ghost">REINICIAR</button>
+          <button id="menuBtn" class="btn btn-ghost">MENÚ</button>
+        </div>
+        <p class="modal-hint">P / ESC para continuar</p>
+      </div>
+    </section>
+
+    <!-- ============ GAME OVER ============ -->
+    <section id="overScreen" class="screen over-screen is-hidden">
+      <div class="modal over-modal">
+        <p class="modal-kicker danger">LA HORDA AVANZA</p>
+        <h2 class="modal-title over-title">HAS CAÍDO</h2>
+        <p id="overSub" class="over-sub">Llegaste a la oleada 1</p>
+        <div class="over-stats">
+          <div class="over-stat"><span class="over-label">PUNTOS</span><b id="overScore">0</b></div>
+          <div class="over-stat"><span class="over-label">OLEADA</span><b id="overWave">1</b></div>
+          <div class="over-stat"><span class="over-label">BAJAS</span><b id="overKills">0</b></div>
+          <div class="over-stat"><span class="over-label">MONEDAS</span><b id="overCoins">0</b></div>
+        </div>
+        <div id="newRecord" class="new-record is-hidden">¡NUEVO RÉCORD!</div>
+        <div class="best small">RÉCORD <span id="overBest">0</span></div>
+        <div class="modal-actions">
+          <button id="retryBtn" class="btn btn-primary">REINTENTAR</button>
+          <button id="overMenuBtn" class="btn btn-ghost">MENÚ</button>
+        </div>
+        <p class="modal-hint">R para reintentar</p>
+      </div>
+    </section>
+
+    <div id="rotateHint" class="rotate-hint is-hidden">Gira el dispositivo para una mejor experiencia</div>
+  </div>
+
+  <script type="module" src="js/main.js"></script>
+</body>
+</html>
